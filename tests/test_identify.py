@@ -42,3 +42,10 @@ class TestIdentify:
 
     def test_partial_prefix(self):
         assert identify("$2") is None
+
+    def test_django_bcrypt_sha256(self):
+        assert identify("bcrypt_sha256$$2b$12$salthash") == "django_bcrypt_sha256"
+
+    def test_django_bcrypt_not_sha256(self):
+        """bcrypt$ prefix should map to django_bcrypt, not django_bcrypt_sha256."""
+        assert identify("bcrypt$$2b$12$salthash") == "django_bcrypt"

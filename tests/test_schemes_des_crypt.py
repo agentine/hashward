@@ -1,5 +1,7 @@
 """Tests for hashward.schemes.des_crypt (pure Python, no external deps)."""
 
+import pytest
+
 from hashward.schemes.des_crypt import DesCryptHandler
 
 
@@ -66,3 +68,11 @@ class TestDesCryptHandler:
     def test_explicit_salt(self):
         h = self.handler.hash("test", salt="ab")
         assert h[:2] == "ab"
+
+    def test_salt_invalid_chars_rejected(self):
+        with pytest.raises(ValueError, match="Invalid salt character"):
+            self.handler.hash("password", salt="a$")
+
+    def test_salt_space_rejected(self):
+        with pytest.raises(ValueError, match="Invalid salt character"):
+            self.handler.hash("password", salt="a ")

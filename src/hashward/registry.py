@@ -23,6 +23,7 @@ _BUILTIN_SCHEMES: dict[str, tuple[str, str]] = {
     "md5_crypt": ("hashward.schemes.md5_crypt", "Md5CryptHandler"),
     "django_pbkdf2_sha256": ("hashward.schemes.django", "DjangoPbkdf2Sha256Handler"),
     "django_bcrypt": ("hashward.schemes.django", "DjangoBcryptHandler"),
+    "django_bcrypt_sha256": ("hashward.schemes.django", "DjangoBcryptSha256Handler"),
     "django_argon2": ("hashward.schemes.django", "DjangoArgon2Handler"),
     "django_scrypt": ("hashward.schemes.django", "DjangoScryptHandler"),
 }

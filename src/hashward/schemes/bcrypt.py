@@ -28,6 +28,14 @@ def _ensure_backend() -> None:
 _BCRYPT_RE = re.compile(r"^\$2[aby]\$\d{2}\$.{53}$")
 _DEFAULT_ROUNDS = 12
 
+# Passlib bcrypt_sha256 format regexes
+_PASSLIB_V1_RE = re.compile(
+    r"^\$bcrypt-sha256\$(2[ab]?),(\d+),([A-Za-z0-9./]{22})\$([A-Za-z0-9./]{31})$"
+)
+_PASSLIB_V2_RE = re.compile(
+    r"^\$bcrypt-sha256\$v=2,t=(2[ab]?),r=(\d+)\$([A-Za-z0-9./]{22})\$([A-Za-z0-9./]{31})$"
+)
+
 
 class BcryptHandler(AbstractHandler):
     """Standard bcrypt password hashing."""
@@ -91,7 +99,11 @@ class BcryptSha256Handler(AbstractHandler):
             return False
         secret_bytes = to_bytes(secret)
         sha_digest = hashlib.sha256(secret_bytes).hexdigest()
-        bcrypt_hash = hash[len(self._PREFIX):]
+
+        bcrypt_hash = self._extract_bcrypt_hash(hash)
+        if bcrypt_hash is None:
+            return False
+
         try:
             return _bcrypt.checkpw(
                 sha_digest.encode("ascii"), bcrypt_hash.encode("ascii")
@@ -99,12 +111,42 @@ class BcryptSha256Handler(AbstractHandler):
         except (ValueError, TypeError):
             return False
 
+    @staticmethod
+    def _extract_bcrypt_hash(hash: str) -> str | None:
+        """Extract a standard bcrypt hash from any supported format.
+
+        Supports:
+        - hashward native: $bcrypt-sha256$$2b$12$<salt><hash>
+        - passlib v1: $bcrypt-sha256$2a,12,<salt22>$<hash31>
+        - passlib v2: $bcrypt-sha256$v=2,t=2b,r=12$<salt22>$<hash31>
+        """
+        # Try passlib v2 first (more specific prefix)
+        m = _PASSLIB_V2_RE.match(hash)
+        if m:
+            ident, rounds, salt64, checksum64 = m.groups()
+            return f"${ident}${rounds}${salt64}{checksum64}"
+
+        # Try passlib v1
+        m = _PASSLIB_V1_RE.match(hash)
+        if m:
+            ident, rounds, salt64, checksum64 = m.groups()
+            return f"${ident}${rounds}${salt64}{checksum64}"
+
+        # hashward native: prefix followed by full bcrypt hash
+        rest = hash[len(BcryptSha256Handler._PREFIX):]
+        if _BCRYPT_RE.match(rest):
+            return rest
+
+        return None
+
     def identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:
         try:
-            bcrypt_part = hash[len(self._PREFIX):]
+            bcrypt_part = self._extract_bcrypt_hash(hash)
+            if bcrypt_part is None:
+                return True
             rounds = int(bcrypt_part.split("$")[2])
             return rounds < _DEFAULT_ROUNDS
         except (IndexError, ValueError):

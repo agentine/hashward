@@ -1,5 +1,7 @@
 """Tests for hashward.schemes.sha_crypt (pure Python, no external deps)."""
 
+import pytest
+
 from hashward.schemes.sha_crypt import Sha256CryptHandler, Sha512CryptHandler
 
 
@@ -114,3 +116,40 @@ class TestSha512CryptHandler:
     def test_bytes_password(self):
         h = self.handler.hash(b"test", rounds=5000)
         assert self.handler.verify(b"test", h) is True
+
+
+class TestShaCryptSaltValidation:
+    """Salt length truncation and character validation for SHA-crypt."""
+
+    def test_salt_truncated_to_16_chars(self):
+        handler = Sha256CryptHandler()
+        h = handler.hash("password", salt="a" * 32, rounds=5000)
+        parts = h.split("$")
+        # $5$salt$hash -> ['', '5', 'salt', 'hash']
+        assert len(parts[2]) == 16
+
+    def test_salt_truncated_sha512(self):
+        handler = Sha512CryptHandler()
+        h = handler.hash("password", salt="b" * 20, rounds=5000)
+        parts = h.split("$")
+        assert len(parts[2]) == 16
+
+    def test_salt_invalid_chars_rejected(self):
+        handler = Sha256CryptHandler()
+        with pytest.raises(ValueError, match="Invalid salt character"):
+            handler.hash("password", salt="abc$def", rounds=5000)
+
+    def test_salt_dollar_rejected(self):
+        handler = Sha512CryptHandler()
+        with pytest.raises(ValueError, match="Invalid salt character"):
+            handler.hash("password", salt="salt$corrupt", rounds=5000)
+
+    def test_salt_space_rejected(self):
+        handler = Sha256CryptHandler()
+        with pytest.raises(ValueError, match="Invalid salt character"):
+            handler.hash("password", salt="salt with space", rounds=5000)
+
+    def test_valid_salt_accepted(self):
+        handler = Sha256CryptHandler()
+        h = handler.hash("password", salt="abcABC012./xyz", rounds=5000)
+        assert handler.verify("password", h) is True

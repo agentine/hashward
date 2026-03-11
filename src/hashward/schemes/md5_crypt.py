@@ -12,7 +12,7 @@ import hashlib
 
 from hashward._utils import consteq, to_bytes
 from hashward.schemes._base import AbstractHandler
-from hashward.schemes.sha_crypt import _SALT_CHARS, _generate_salt
+from hashward.schemes.sha_crypt import _SALT_CHARS, _generate_salt, _validate_salt
 
 
 def _hash64_encode_md5(data: bytes) -> str:
@@ -100,8 +100,7 @@ class Md5CryptHandler(AbstractHandler):
     def hash(self, secret: str | bytes, **settings) -> str:
         secret_bytes = to_bytes(secret)
         salt = settings.get("salt", _generate_salt(8))
-        # Truncate salt to 8 chars per spec
-        salt = salt[:8]
+        salt = _validate_salt(salt, 8)
         return _md5_crypt(secret_bytes, salt)
 
     def verify(self, secret: str | bytes, hash: str) -> bool:

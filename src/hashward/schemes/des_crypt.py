@@ -13,6 +13,7 @@ import re
 
 from hashward._utils import consteq, to_bytes
 from hashward.schemes._base import AbstractHandler
+from hashward.schemes.sha_crypt import _validate_salt
 
 _SALT_CHARS = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 _DES_HASH_RE = re.compile(r"^[./0-9A-Za-z]{13}$")
@@ -211,7 +212,8 @@ class DesCryptHandler(AbstractHandler):
         if salt is None:
             raw = os.urandom(2)
             salt = _SALT_CHARS[raw[0] % 64] + _SALT_CHARS[raw[1] % 64]
-        return _des_crypt(secret_bytes, salt[:2])
+        salt = _validate_salt(salt, 2)
+        return _des_crypt(secret_bytes, salt)
 
     def verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):

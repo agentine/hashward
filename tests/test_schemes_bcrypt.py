@@ -1,5 +1,8 @@
 """Tests for hashward.schemes.bcrypt (requires bcrypt)."""
 
+import hashlib
+import re
+
 import pytest
 
 bcrypt_lib = pytest.importorskip("bcrypt")
@@ -76,3 +79,48 @@ class TestBcryptSha256Handler:
         assert self.handler.verify(pw, h) is True
         # Truncated version should NOT verify (unlike plain bcrypt)
         assert self.handler.verify("a" * 72, h) is False
+
+    def test_verify_passlib_v1_format(self):
+        """Verify hashes in passlib v1 format: $bcrypt-sha256$2b,12,<salt22>$<hash31>."""
+        pw = "password"
+        sha_digest = hashlib.sha256(pw.encode()).hexdigest()
+        salt = bcrypt_lib.gensalt(rounds=4)
+        bcrypt_hash = bcrypt_lib.hashpw(sha_digest.encode("ascii"), salt).decode("ascii")
+        # Parse: $2b$04$<salt22><hash31>
+        m = re.match(r"^\$(2[ab]?)\$(\d+)\$(.{22})(.{31})$", bcrypt_hash)
+        assert m, f"unexpected bcrypt format: {bcrypt_hash}"
+        ident, rounds, salt64, checksum64 = m.groups()
+        v1_hash = f"$bcrypt-sha256${ident},{rounds},{salt64}${checksum64}"
+        assert self.handler.verify(pw, v1_hash) is True
+        assert self.handler.verify("wrong", v1_hash) is False
+
+    def test_verify_passlib_v2_format(self):
+        """Verify hashes in passlib v2 format: $bcrypt-sha256$v=2,t=2b,r=12$<salt22>$<hash31>."""
+        pw = "testpassword"
+        sha_digest = hashlib.sha256(pw.encode()).hexdigest()
+        salt = bcrypt_lib.gensalt(rounds=5)
+        bcrypt_hash = bcrypt_lib.hashpw(sha_digest.encode("ascii"), salt).decode("ascii")
+        m = re.match(r"^\$(2[ab]?)\$(\d+)\$(.{22})(.{31})$", bcrypt_hash)
+        assert m, f"unexpected bcrypt format: {bcrypt_hash}"
+        ident, rounds, salt64, checksum64 = m.groups()
+        v2_hash = f"$bcrypt-sha256$v=2,t={ident},r={rounds}${salt64}${checksum64}"
+        assert self.handler.verify(pw, v2_hash) is True
+        assert self.handler.verify("wrong", v2_hash) is False
+
+    def test_identify_passlib_formats(self):
+        """Both passlib v1 and v2 formats should be identified."""
+        v1 = "$bcrypt-sha256$2b,12,LJ2FY3MIQAYEKHJIT66OSYMA$abcdefghijklmnopqrstuvwxyz01234"
+        v2 = "$bcrypt-sha256$v=2,t=2b,r=12$LJ2FY3MIQAYEKHJIT66OSYMA$abcdefghijklmnopqrstuvwxyz01234"
+        assert self.handler.identify(v1) is True
+        assert self.handler.identify(v2) is True
+
+    def test_needs_update_passlib_formats(self):
+        """needs_update should parse rounds from passlib formats."""
+        pw = "password"
+        sha_digest = hashlib.sha256(pw.encode()).hexdigest()
+        salt = bcrypt_lib.gensalt(rounds=4)
+        bcrypt_hash = bcrypt_lib.hashpw(sha_digest.encode("ascii"), salt).decode("ascii")
+        m = re.match(r"^\$(2[ab]?)\$(\d+)\$(.{22})(.{31})$", bcrypt_hash)
+        ident, rounds, salt64, checksum64 = m.groups()
+        v1_hash = f"$bcrypt-sha256${ident},{rounds},{salt64}${checksum64}"
+        assert self.handler.needs_update(v1_hash) is True  # rounds=4 < 12

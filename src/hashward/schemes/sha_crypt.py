@@ -21,6 +21,24 @@ _SALT_CHARS = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 _ROUNDS_MIN = 1000
 _ROUNDS_MAX = 999_999_999
 
+_SALT_CHARS_SET = frozenset(_SALT_CHARS)
+
+
+def _validate_salt(salt: str, max_len: int) -> str:
+    """Validate and truncate a salt string.
+
+    Ensures all characters are in the allowed alphabet and truncates
+    to the maximum length for the scheme.
+    """
+    salt = salt[:max_len]
+    for ch in salt:
+        if ch not in _SALT_CHARS_SET:
+            raise ValueError(
+                f"Invalid salt character: {ch!r}. "
+                f"Salt must contain only characters from: {_SALT_CHARS}"
+            )
+    return salt
+
 
 def _generate_salt(size: int = 16) -> str:
     """Generate a random salt string from the allowed alphabet."""
@@ -179,6 +197,7 @@ class _ShaCryptHandler(AbstractHandler):
         rounds = settings.get("rounds", self._DEFAULT_ROUNDS)
         rounds = max(_ROUNDS_MIN, min(_ROUNDS_MAX, rounds))
         salt = settings.get("salt", _generate_salt(16))
+        salt = _validate_salt(salt, 16)
         return _sha_crypt(secret_bytes, salt, rounds, self._HASH_FUNC)
 
     def verify(self, secret: str | bytes, hash: str) -> bool:

@@ -1,5 +1,7 @@
 """Tests for hashward.schemes.md5_crypt (pure Python, no external deps)."""
 
+import pytest
+
 from hashward.schemes.md5_crypt import Md5CryptHandler
 
 
@@ -70,3 +72,12 @@ class TestMd5CryptHandler:
         h = self.handler.hash("password", salt="abcdefghijklmnop")
         parts = h.split("$")
         assert len(parts[2]) == 8  # Truncated to 8
+
+    def test_salt_invalid_chars_rejected(self):
+        with pytest.raises(ValueError, match="Invalid salt character"):
+            self.handler.hash("password", salt="abc$def")
+
+    def test_salt_dollar_corrupts_format(self):
+        """A $ in the salt would corrupt the hash format."""
+        with pytest.raises(ValueError, match="Invalid salt character"):
+            self.handler.hash("password", salt="sa$t1234")

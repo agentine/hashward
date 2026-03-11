@@ -3,6 +3,7 @@
 from hashward.schemes.django import (
     DjangoArgon2Handler,
     DjangoBcryptHandler,
+    DjangoBcryptSha256Handler,
     DjangoPbkdf2Sha256Handler,
     DjangoScryptHandler,
 )
@@ -78,6 +79,54 @@ class TestDjangoBcryptHandler:
         h = self.handler.hash("password", rounds=4)
         assert self.handler.identify(h) is True
         assert self.handler.identify("$2b$12$notdjango") is False
+
+    def test_needs_update_low_rounds(self):
+        h = self.handler.hash("password", rounds=4)
+        assert self.handler.needs_update(h) is True
+
+    def test_needs_update_sufficient(self):
+        h = self.handler.hash("password", rounds=12)
+        assert self.handler.needs_update(h) is False
+
+    def test_bytes_password(self):
+        h = self.handler.hash(b"password", rounds=4)
+        assert self.handler.verify(b"password", h) is True
+
+
+class TestDjangoBcryptSha256Handler:
+    def setup_method(self):
+        self.handler = DjangoBcryptSha256Handler()
+
+    def test_hash_produces_valid_string(self):
+        h = self.handler.hash("password", rounds=4)
+        assert h.startswith("bcrypt_sha256$")
+
+    def test_verify_correct(self):
+        h = self.handler.hash("password", rounds=4)
+        assert self.handler.verify("password", h) is True
+
+    def test_verify_wrong(self):
+        h = self.handler.hash("password", rounds=4)
+        assert self.handler.verify("wrongpassword", h) is False
+
+    def test_identify(self):
+        h = self.handler.hash("password", rounds=4)
+        assert self.handler.identify(h) is True
+        # Should not match plain bcrypt$ prefix
+        assert self.handler.identify("bcrypt$something") is False
+
+    def test_identify_rejects_plain_bcrypt(self):
+        """DjangoBcryptHandler should NOT identify bcrypt_sha256$ hashes."""
+        h = self.handler.hash("password", rounds=4)
+        plain_handler = DjangoBcryptHandler()
+        assert plain_handler.identify(h) is False
+
+    def test_long_password(self):
+        """SHA-256 pre-hash handles passwords > 72 bytes."""
+        pw = "a" * 200
+        h = self.handler.hash(pw, rounds=4)
+        assert self.handler.verify(pw, h) is True
+        assert self.handler.verify("a" * 72, h) is False
 
     def test_needs_update_low_rounds(self):
         h = self.handler.hash("password", rounds=4)

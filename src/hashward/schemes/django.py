@@ -116,6 +116,61 @@ class DjangoBcryptHandler(AbstractHandler):
             return True
 
 
+class DjangoBcryptSha256Handler(AbstractHandler):
+    """Django bcrypt_sha256 password hashing.
+
+    Hash format: bcrypt_sha256$$2b$...
+    Pre-hashes the password with SHA-256 before bcrypt (like passlib).
+    """
+
+    SCHEME = "django_bcrypt_sha256"
+    _PREFIX = "bcrypt_sha256$"
+    _DEFAULT_ROUNDS = 12
+
+    def _ensure_backend(self) -> None:
+        try:
+            import bcrypt as _bcrypt  # noqa: F401
+        except ImportError:
+            from hashward.exc import MissingBackendError
+            raise MissingBackendError("bcrypt library is required: pip install bcrypt")
+
+    def hash(self, secret: str | bytes, **settings) -> str:
+        self._ensure_backend()
+        import bcrypt
+
+        secret_bytes = to_bytes(secret)
+        sha_digest = hashlib.sha256(secret_bytes).hexdigest()
+        rounds = settings.get("rounds", self._DEFAULT_ROUNDS)
+        salt = bcrypt.gensalt(rounds=rounds)
+        hashed = bcrypt.hashpw(sha_digest.encode("ascii"), salt)
+        return f"bcrypt_sha256${hashed.decode('ascii')}"
+
+    def verify(self, secret: str | bytes, hash: str) -> bool:
+        if not self.identify(hash):
+            return False
+        self._ensure_backend()
+        import bcrypt
+
+        secret_bytes = to_bytes(secret)
+        sha_digest = hashlib.sha256(secret_bytes).hexdigest()
+        bcrypt_hash = hash[len(self._PREFIX):].encode("ascii")
+        try:
+            return bcrypt.checkpw(sha_digest.encode("ascii"), bcrypt_hash)
+        except (ValueError, TypeError):
+            return False
+
+    def identify(self, hash: str) -> bool:
+        return hash.startswith(self._PREFIX)
+
+    def needs_update(self, hash: str) -> bool:
+        try:
+            bcrypt_part = hash[len(self._PREFIX):]
+            rounds = int(bcrypt_part.split("$")[2])
+            return rounds < self._DEFAULT_ROUNDS
+        except (ValueError, IndexError):
+            return True
+
+
 class DjangoArgon2Handler(AbstractHandler):
     """Django argon2 password hashing.
 
