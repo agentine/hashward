@@ -42,7 +42,7 @@ class TestDefaultRegistry:
     def test_builtin_schemes_registered(self):
         expected = {
             "argon2", "bcrypt", "bcrypt_sha256", "pbkdf2_sha256", "pbkdf2_sha512", "scrypt",
-            "sha256_crypt", "sha512_crypt", "md5_crypt",
+            "sha256_crypt", "sha512_crypt", "md5_crypt", "des_crypt",
             "django_pbkdf2_sha256", "django_bcrypt", "django_bcrypt_sha256",
             "django_argon2", "django_scrypt",
         }
