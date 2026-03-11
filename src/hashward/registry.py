@@ -18,6 +18,9 @@ _BUILTIN_SCHEMES: dict[str, tuple[str, str]] = {
     "scrypt": ("hashward.schemes.scrypt", "ScryptHandler"),
     "pbkdf2_sha256": ("hashward.schemes.pbkdf2", "Pbkdf2Sha256Handler"),
     "pbkdf2_sha512": ("hashward.schemes.pbkdf2", "Pbkdf2Sha512Handler"),
+    "sha256_crypt": ("hashward.schemes.sha_crypt", "Sha256CryptHandler"),
+    "sha512_crypt": ("hashward.schemes.sha_crypt", "Sha512CryptHandler"),
+    "md5_crypt": ("hashward.schemes.md5_crypt", "Md5CryptHandler"),
 }
 
 

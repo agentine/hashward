@@ -40,7 +40,10 @@ class TestSchemeRegistry:
 
 class TestDefaultRegistry:
     def test_builtin_schemes_registered(self):
-        expected = {"argon2", "bcrypt", "bcrypt_sha256", "pbkdf2_sha256", "pbkdf2_sha512", "scrypt"}
+        expected = {
+            "argon2", "bcrypt", "bcrypt_sha256", "pbkdf2_sha256", "pbkdf2_sha512", "scrypt",
+            "sha256_crypt", "sha512_crypt", "md5_crypt",
+        }
         assert expected == set(DEFAULT_REGISTRY.list_schemes())
 
     def test_lazy_load_pbkdf2(self):

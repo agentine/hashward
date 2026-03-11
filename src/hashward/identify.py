@@ -15,6 +15,9 @@ _PREFIX_MAP: list[tuple[str, str]] = [
     ("$s0$", "scrypt"),
     ("$pbkdf2-sha256$", "pbkdf2_sha256"),
     ("$pbkdf2-sha512$", "pbkdf2_sha512"),
+    ("$5$", "sha256_crypt"),
+    ("$6$", "sha512_crypt"),
+    ("$1$", "md5_crypt"),
 ]
 
 
