@@ -93,8 +93,14 @@ class CryptContext:
         return result
 
     def identify(self, hash: str) -> str | None:
-        """Identify the scheme of a hash string."""
-        return _identify(hash)
+        """Identify the scheme of a hash string.
+
+        Only returns schemes that are configured in this context.
+        """
+        scheme = _identify(hash)
+        if scheme is not None and self._schemes and scheme not in self._schemes:
+            return None
+        return scheme
 
     def needs_update(self, hash: str) -> bool:
         """Check if a hash needs to be re-hashed.
@@ -175,7 +181,7 @@ class CryptContext:
     @classmethod
     def from_string(cls, ini_str: str, registry: SchemeRegistry | None = None) -> CryptContext:
         """Create a CryptContext from an INI-format config string."""
-        parser = configparser.ConfigParser()
+        parser = configparser.RawConfigParser()
         parser.read_string(ini_str)
 
         section = "hashward"

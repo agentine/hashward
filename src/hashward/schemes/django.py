@@ -219,8 +219,19 @@ class DjangoArgon2Handler(AbstractHandler):
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:
-        # Delegate to checking if argon2 params are current
-        return False
+        self._ensure_backend()
+        from argon2 import PasswordHasher
+
+        argon2_hash = hash[len(self._PREFIX):]
+        ph = PasswordHasher(
+            time_cost=2,
+            memory_cost=102400,
+            parallelism=8,
+        )
+        try:
+            return ph.check_needs_rehash(argon2_hash)
+        except Exception:
+            return True
 
 
 class DjangoScryptHandler(AbstractHandler):

@@ -44,9 +44,7 @@ class Argon2Handler(AbstractHandler):
 
     def hash(self, secret: str | bytes, **settings) -> str:
         _ensure_backend()
-        if isinstance(secret, bytes):
-            secret = secret.decode("utf-8")
-
+        # argon2-cffi accepts both str and bytes natively.
         time_cost = settings.get("time_cost", self._DEFAULT_TIME_COST)
         memory_cost = settings.get("memory_cost", self._DEFAULT_MEMORY_COST)
         parallelism = settings.get("parallelism", self._DEFAULT_PARALLELISM)
@@ -65,9 +63,7 @@ class Argon2Handler(AbstractHandler):
 
     def verify(self, secret: str | bytes, hash: str) -> bool:
         _ensure_backend()
-        if isinstance(secret, bytes):
-            secret = secret.decode("utf-8")
-
+        # argon2-cffi accepts both str and bytes natively.
         ph = _PasswordHasher()
         try:
             return ph.verify(hash, secret)
