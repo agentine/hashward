@@ -43,6 +43,7 @@ class TestDefaultRegistry:
         expected = {
             "argon2", "bcrypt", "bcrypt_sha256", "pbkdf2_sha256", "pbkdf2_sha512", "scrypt",
             "sha256_crypt", "sha512_crypt", "md5_crypt",
+            "django_pbkdf2_sha256", "django_bcrypt", "django_argon2", "django_scrypt",
         }
         assert expected == set(DEFAULT_REGISTRY.list_schemes())
 

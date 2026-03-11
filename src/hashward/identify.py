@@ -18,6 +18,11 @@ _PREFIX_MAP: list[tuple[str, str]] = [
     ("$5$", "sha256_crypt"),
     ("$6$", "sha512_crypt"),
     ("$1$", "md5_crypt"),
+    ("pbkdf2_sha256$", "django_pbkdf2_sha256"),
+    ("bcrypt_sha256$", "django_bcrypt"),
+    ("bcrypt$", "django_bcrypt"),
+    ("argon2$", "django_argon2"),
+    ("scrypt$", "django_scrypt"),
 ]
 
 
