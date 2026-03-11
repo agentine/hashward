@@ -20,12 +20,12 @@ def _hash64_encode_md5(data: bytes) -> str:
     itoa64 = _SALT_CHARS
     out: list[str] = []
 
-    # MD5 encoding order (groups of 3 bytes -> 4 chars)
+    # MD5 encoding order (groups of 3 bytes -> 4 chars each)
     order = [
         (0, 6, 12), (1, 7, 13), (2, 8, 14),
         (3, 9, 15), (4, 10, 5),
     ]
-    for a, b, c in order[:4]:
+    for a, b, c in order:
         v = (data[a] << 16) | (data[b] << 8) | data[c]
         for _ in range(4):
             out.append(itoa64[v & 0x3F])

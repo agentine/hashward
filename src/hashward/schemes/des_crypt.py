@@ -100,8 +100,8 @@ _SBOXES = [
     ],
     [
         13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7,
-        1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 2, 0, 14, 9, 11,
-        7, 0, 1, 13, 11, 6, 4, 9, 5, 3, 14, 10, 0, 12, 8, 15,  # noqa: RUF039
+        1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2,
+        7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8,
         2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11,
     ],
 ]
@@ -144,12 +144,10 @@ def _des_crypt(secret: bytes, salt: str) -> str:
     itoa64 = _SALT_CHARS
 
     # Convert password to 64-bit DES key (only first 8 bytes used)
+    # Each byte's lower 7 bits become key data in standard DES key format:
+    # data bits at positions 7-1 (MSB end) of each byte, parity at position 0
     key_bytes = (secret[:8] + b"\x00" * 8)[:8]
-    # DES key: use top 7 bits of each byte
-    key = 0
-    for byte in key_bytes:
-        key = (key << 7) | (byte >> 1)
-    key <<= 8  # Pad to 64 bits
+    key = sum((c & 0x7F) << (57 - i * 8) for i, c in enumerate(key_bytes))
 
     subkeys = _make_subkeys(key)
 
@@ -192,13 +190,11 @@ def _des_crypt(secret: bytes, salt: str) -> str:
         combined = ((right & 0xFFFFFFFF) << 32) | (left & 0xFFFFFFFF)
         block = _permute(combined, _FP, 64)
 
-    # Encode result
+    # Encode 64-bit result to 11-char hash using big-endian h64 encoding
     out = list(salt)
-    # Convert 64-bit result to 11 base-64 characters
-    val = block
-    for _ in range(11):
-        out.append(itoa64[val & 0x3F])
-        val >>= 6
+    v = block << 2  # pad to 66 bits (11 * 6)
+    for off in range(60, -6, -6):
+        out.append(itoa64[(v >> off) & 0x3F])
 
     return "".join(out)
 

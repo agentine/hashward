@@ -28,7 +28,7 @@ def _generate_salt(size: int = 16) -> str:
     return "".join(_SALT_CHARS[b % len(_SALT_CHARS)] for b in raw)
 
 
-def _hash64_encode(data: bytes, order: list[tuple[int, int, int]], final_pair: tuple[int, int] | None = None) -> str:
+def _hash64_encode(data: bytes, order: list[tuple[int, int, int]], final_bytes: tuple[list[int], int] | None = None) -> str:
     """Encode hash bytes to the custom base64 used by sha-crypt/md5-crypt."""
     itoa64 = _SALT_CHARS
     out: list[str] = []
@@ -37,9 +37,11 @@ def _hash64_encode(data: bytes, order: list[tuple[int, int, int]], final_pair: t
         for _ in range(4):
             out.append(itoa64[v & 0x3F])
             v >>= 6
-    if final_pair is not None:
-        idx, n_chars = final_pair
-        v = data[idx]
+    if final_bytes is not None:
+        indices, n_chars = final_bytes
+        v = 0
+        for i, idx in enumerate(indices):
+            v |= data[idx] << (8 * i)
         for _ in range(n_chars):
             out.append(itoa64[v & 0x3F])
             v >>= 6
@@ -73,13 +75,13 @@ def _sha_crypt(secret: bytes, salt: str, rounds: int, hash_func: str) -> str:
         prefix = "$5$"
         digest_size = 32
         order = _SHA256_ORDER
-        final_pair = (30, 3)  # last byte index, number of output chars
+        final_bytes = ([30, 31], 3)  # bytes 30+31 → 3 chars
     else:
         new_hash = hashlib.sha512
         prefix = "$6$"
         digest_size = 64
         order = _SHA512_ORDER
-        final_pair = (63, 2)
+        final_bytes = ([63], 2)  # byte 63 → 2 chars
 
     salt_bytes = salt.encode("ascii")
 
@@ -154,7 +156,7 @@ def _sha_crypt(secret: bytes, salt: str, rounds: int, hash_func: str) -> str:
         c = ctx.digest()
 
     # Step 21: Encode
-    encoded = _hash64_encode(c, order, final_pair)
+    encoded = _hash64_encode(c, order, final_bytes)
 
     # Build output
     if rounds == 5000:
