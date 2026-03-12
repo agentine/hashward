@@ -103,7 +103,7 @@ class Md5CryptHandler(AbstractHandler):
         salt = _validate_salt(salt, 8)
         return _md5_crypt(secret_bytes, salt)
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         try:
@@ -118,7 +118,7 @@ class Md5CryptHandler(AbstractHandler):
         computed = _md5_crypt(secret_bytes, salt)
         return consteq(computed, hash)
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:

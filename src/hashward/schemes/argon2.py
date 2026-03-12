@@ -61,7 +61,7 @@ class Argon2Handler(AbstractHandler):
         )
         return ph.hash(secret)
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         _ensure_backend()
         # argon2-cffi accepts both str and bytes natively.
         ph = _PasswordHasher()
@@ -70,7 +70,7 @@ class Argon2Handler(AbstractHandler):
         except (VerifyMismatchError, VerificationError, _ArgonInvalidHash):
             return False
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return any(hash.startswith(p) for p in self._PREFIXES)
 
     def needs_update(self, hash: str) -> bool:

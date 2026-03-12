@@ -34,7 +34,7 @@ class _Pbkdf2Handler(AbstractHandler):
         hash_str = ab64_encode(dk)
         return f"{self._PREFIX}{rounds}${salt_str}${hash_str}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not hash.startswith(self._PREFIX):
             return False
         try:
@@ -59,7 +59,7 @@ class _Pbkdf2Handler(AbstractHandler):
         computed = ab64_encode(dk)
         return consteq(computed, expected_hash)
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:

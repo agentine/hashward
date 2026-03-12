@@ -30,8 +30,10 @@ def identify(hash_string: str) -> str | None:
     """Detect the hashing scheme from a hash string.
 
     Returns the scheme name (e.g. 'argon2', 'bcrypt') or None
-    if the hash format is not recognized.
+    if the hash format is not recognized or input is not a string.
     """
+    if not isinstance(hash_string, str):
+        return None
     for prefix, scheme in _PREFIX_MAP:
         if hash_string.startswith(prefix):
             return scheme

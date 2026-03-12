@@ -200,7 +200,7 @@ class _ShaCryptHandler(AbstractHandler):
         salt = _validate_salt(salt, 16)
         return _sha_crypt(secret_bytes, salt, rounds, self._HASH_FUNC)
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         try:
@@ -211,7 +211,7 @@ class _ShaCryptHandler(AbstractHandler):
         computed = _sha_crypt(secret_bytes, salt, rounds, self._HASH_FUNC)
         return consteq(computed, hash)
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:

@@ -22,7 +22,7 @@ class PlaintextHandler(AbstractHandler):
             secret = secret.decode("utf-8")
         return f"{_PREFIX}{secret}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if isinstance(secret, bytes):
             secret = secret.decode("utf-8")
         if hash.startswith(_PREFIX):
@@ -31,7 +31,7 @@ class PlaintextHandler(AbstractHandler):
             stored = hash
         return consteq(stored, secret)
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(_PREFIX)
 
     def needs_update(self, hash: str) -> bool:

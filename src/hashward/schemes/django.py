@@ -33,7 +33,7 @@ class DjangoPbkdf2Sha256Handler(AbstractHandler):
         hash_b64 = base64.b64encode(dk).decode("ascii")
         return f"pbkdf2_sha256${iterations}${salt}${hash_b64}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         try:
@@ -51,7 +51,7 @@ class DjangoPbkdf2Sha256Handler(AbstractHandler):
         computed = base64.b64encode(dk).decode("ascii")
         return consteq(computed, expected)
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:
@@ -90,7 +90,7 @@ class DjangoBcryptHandler(AbstractHandler):
         hashed = bcrypt.hashpw(secret_bytes, salt)
         return f"bcrypt${hashed.decode('ascii')}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         self._ensure_backend()
@@ -103,7 +103,7 @@ class DjangoBcryptHandler(AbstractHandler):
         except (ValueError, TypeError):
             return False
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX) and not hash.startswith("bcrypt_sha256$")
 
     def needs_update(self, hash: str) -> bool:
@@ -145,7 +145,7 @@ class DjangoBcryptSha256Handler(AbstractHandler):
         hashed = bcrypt.hashpw(sha_digest.encode("ascii"), salt)
         return f"bcrypt_sha256${hashed.decode('ascii')}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         self._ensure_backend()
@@ -159,7 +159,7 @@ class DjangoBcryptSha256Handler(AbstractHandler):
         except (ValueError, TypeError):
             return False
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:
@@ -200,7 +200,7 @@ class DjangoArgon2Handler(AbstractHandler):
         argon2_hash = ph.hash(secret_bytes)
         return f"argon2${argon2_hash}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         self._ensure_backend()
@@ -219,7 +219,7 @@ class DjangoArgon2Handler(AbstractHandler):
         except (VerifyMismatchError, VerificationError, _ArgonInvalidHash):
             return False
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:
@@ -261,7 +261,7 @@ class DjangoScryptHandler(AbstractHandler):
         hash_b64 = base64.b64encode(dk).decode("ascii")
         return f"scrypt${salt}${n}${r}${p}${hash_b64}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         try:
@@ -285,7 +285,7 @@ class DjangoScryptHandler(AbstractHandler):
         computed = base64.b64encode(dk).decode("ascii")
         return consteq(computed, expected)
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         # Must not match hashward's native $scrypt$ format
         if hash.startswith("$scrypt$"):
             return False

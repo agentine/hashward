@@ -241,3 +241,139 @@ class TestScryptInvalidParameters:
         h = handler.hash("password", n=1024)
         assert handler.verify("password", h) is True
         assert handler.verify("wrong", h) is False
+
+
+class TestNonStringHashInput:
+    """Bug #114: verify() and identify() should not crash on non-string hash."""
+
+    def test_module_identify_none(self):
+        from hashward.identify import identify
+
+        assert identify(None) is None
+
+    def test_module_identify_int(self):
+        from hashward.identify import identify
+
+        assert identify(12345) is None
+
+    def test_module_identify_bytes(self):
+        from hashward.identify import identify
+
+        assert identify(b"$pbkdf2-sha256$") is None
+
+    def test_module_identify_list(self):
+        from hashward.identify import identify
+
+        assert identify(["not", "a", "hash"]) is None
+
+    def test_context_verify_none(self):
+        from hashward.context import CryptContext
+
+        ctx = CryptContext(schemes=["pbkdf2_sha256"])
+        assert ctx.verify("password", None) is False
+
+    def test_context_verify_int(self):
+        from hashward.context import CryptContext
+
+        ctx = CryptContext(schemes=["pbkdf2_sha256"])
+        assert ctx.verify("password", 42) is False
+
+    def test_context_verify_bytes(self):
+        from hashward.context import CryptContext
+
+        ctx = CryptContext(schemes=["pbkdf2_sha256"])
+        assert ctx.verify("password", b"not-a-hash") is False
+
+    def test_context_identify_none(self):
+        from hashward.context import CryptContext
+
+        ctx = CryptContext(schemes=["pbkdf2_sha256"])
+        assert ctx.identify(None) is None
+
+    def test_context_identify_int(self):
+        from hashward.context import CryptContext
+
+        ctx = CryptContext(schemes=["pbkdf2_sha256"])
+        assert ctx.identify(999) is None
+
+    def test_handler_verify_none(self):
+        from hashward.schemes.pbkdf2 import Pbkdf2Sha256Handler
+
+        handler = Pbkdf2Sha256Handler()
+        assert handler.verify("password", None) is False
+
+    def test_handler_verify_int(self):
+        from hashward.schemes.pbkdf2 import Pbkdf2Sha256Handler
+
+        handler = Pbkdf2Sha256Handler()
+        assert handler.verify("password", 42) is False
+
+    def test_handler_identify_none(self):
+        from hashward.schemes.pbkdf2 import Pbkdf2Sha256Handler
+
+        handler = Pbkdf2Sha256Handler()
+        assert handler.identify(None) is False
+
+    def test_handler_identify_int(self):
+        from hashward.schemes.pbkdf2 import Pbkdf2Sha256Handler
+
+        handler = Pbkdf2Sha256Handler()
+        assert handler.identify(42) is False
+
+    def test_sha_crypt_handler_verify_none(self):
+        from hashward.schemes.sha_crypt import Sha256CryptHandler
+
+        handler = Sha256CryptHandler()
+        assert handler.verify("password", None) is False
+
+    def test_scrypt_handler_verify_none(self):
+        from hashward.schemes.scrypt import ScryptHandler
+
+        handler = ScryptHandler()
+        assert handler.verify("password", None) is False
+
+    def test_md5_crypt_handler_verify_none(self):
+        from hashward.schemes.md5_crypt import Md5CryptHandler
+
+        handler = Md5CryptHandler()
+        assert handler.verify("password", None) is False
+
+    def test_des_crypt_handler_verify_none(self):
+        from hashward.schemes.des_crypt import DesCryptHandler
+
+        handler = DesCryptHandler()
+        assert handler.verify("password", None) is False
+
+    def test_bcrypt_handler_verify_none(self):
+        pytest.importorskip("bcrypt")
+        from hashward.schemes.bcrypt import BcryptHandler
+
+        handler = BcryptHandler()
+        assert handler.verify("password", None) is False
+
+    def test_argon2_handler_verify_none(self):
+        pytest.importorskip("argon2")
+        from hashward.schemes.argon2 import Argon2Handler
+
+        handler = Argon2Handler()
+        assert handler.verify("password", None) is False
+
+    def test_django_pbkdf2_handler_verify_none(self):
+        from hashward.schemes.django import DjangoPbkdf2Sha256Handler
+
+        handler = DjangoPbkdf2Sha256Handler()
+        assert handler.verify("password", None) is False
+
+    def test_module_level_verify_none(self):
+        import hashward
+
+        assert hashward.verify("password", None) is False
+
+    def test_valid_hash_still_works(self):
+        """Ensure the type check doesn't break normal operation."""
+        from hashward.context import CryptContext
+
+        ctx = CryptContext(schemes=["pbkdf2_sha256"])
+        h = ctx.hash("password")
+        assert ctx.verify("password", h) is True
+        assert ctx.verify("wrong", h) is False

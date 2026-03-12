@@ -215,7 +215,7 @@ class DesCryptHandler(AbstractHandler):
         salt = _validate_salt(salt, 2)
         return _des_crypt(secret_bytes, salt)
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         if not self.identify(hash):
             return False
         try:
@@ -226,7 +226,7 @@ class DesCryptHandler(AbstractHandler):
         computed = _des_crypt(secret_bytes, salt)
         return consteq(computed, hash)
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return bool(_DES_HASH_RE.match(hash))
 
     def needs_update(self, hash: str) -> bool:

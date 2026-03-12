@@ -75,7 +75,10 @@ class CryptContext:
         """Verify a password against a hash.
 
         Automatically identifies the scheme from the hash string.
+        Returns False if hash is not a string.
         """
+        if not isinstance(hash, str):
+            return False
         start = time.monotonic()
         scheme = self.identify(hash)
         if scheme is None:

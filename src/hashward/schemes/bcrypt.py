@@ -51,7 +51,7 @@ class BcryptHandler(AbstractHandler):
         salt = _bcrypt.gensalt(rounds=rounds)
         return _bcrypt.hashpw(secret_bytes, salt).decode("ascii")
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         _ensure_backend()
         secret_bytes = to_bytes(secret)
         secret_bytes = secret_bytes[:72]
@@ -60,7 +60,7 @@ class BcryptHandler(AbstractHandler):
         except (ValueError, TypeError):
             return False
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return bool(_BCRYPT_RE.match(hash))
 
     def needs_update(self, hash: str) -> bool:
@@ -93,7 +93,7 @@ class BcryptSha256Handler(AbstractHandler):
         bcrypt_hash = _bcrypt.hashpw(sha_digest.encode("ascii"), salt).decode("ascii")
         return f"{self._PREFIX}{bcrypt_hash}"
 
-    def verify(self, secret: str | bytes, hash: str) -> bool:
+    def _verify(self, secret: str | bytes, hash: str) -> bool:
         _ensure_backend()
         if not hash.startswith(self._PREFIX):
             return False
@@ -139,7 +139,7 @@ class BcryptSha256Handler(AbstractHandler):
 
         return None
 
-    def identify(self, hash: str) -> bool:
+    def _identify(self, hash: str) -> bool:
         return hash.startswith(self._PREFIX)
 
     def needs_update(self, hash: str) -> bool:
