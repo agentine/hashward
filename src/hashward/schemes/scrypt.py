@@ -76,9 +76,12 @@ class ScryptHandler(AbstractHandler):
             return False
 
         secret_bytes = to_bytes(secret)
-        dk = hashlib.scrypt(
-            secret_bytes, salt=salt, n=n, r=r, p=p, dklen=self._DKLEN
-        )
+        try:
+            dk = hashlib.scrypt(
+                secret_bytes, salt=salt, n=n, r=r, p=p, dklen=self._DKLEN
+            )
+        except ValueError:
+            return False
         computed = ab64_encode(dk)
         return consteq(computed, expected_hash)
 

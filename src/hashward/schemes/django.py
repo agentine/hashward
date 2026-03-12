@@ -278,7 +278,10 @@ class DjangoScryptHandler(AbstractHandler):
             return False
 
         secret_bytes = to_bytes(secret)
-        dk = hashlib.scrypt(secret_bytes, salt=salt.encode("ascii"), n=n, r=r, p=p, dklen=64)
+        try:
+            dk = hashlib.scrypt(secret_bytes, salt=salt.encode("ascii"), n=n, r=r, p=p, dklen=64)
+        except ValueError:
+            return False
         computed = base64.b64encode(dk).decode("ascii")
         return consteq(computed, expected)
 

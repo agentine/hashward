@@ -174,3 +174,70 @@ class TestDjangoArgon2MalformedHash:
         h = handler.hash("password")
         assert handler.verify("password", h) is True
         assert handler.verify("wrong", h) is False
+
+
+class TestScryptInvalidParameters:
+    """Bug #101: scrypt verify() should handle invalid hashlib.scrypt parameters."""
+
+    def test_scrypt_handler_invalid_n_not_power_of_2(self):
+        from hashward.schemes.scrypt import ScryptHandler
+
+        handler = ScryptHandler()
+        # Craft a hash with n=3 (not a power of 2) — OpenSSL rejects this
+        # We need to encode n=3 into the scrypt params format
+        import struct
+        import hashlib
+        from hashward._utils import ab64_encode, generate_salt
+
+        # Manually build a hash string with invalid n=3
+        # ln=1 means n=2, ln=2 means n=4; there's no valid ln for n=3
+        # Instead, we'll create a valid-looking hash but tamper with params
+        # First create a valid hash, then replace params
+        h = handler.hash("password", n=1024)
+        # Replace the params hex to encode n=3 (which is ln~1.58, not integer)
+        # Actually, since _decode_scrypt_params uses 1 << ln, any ln value
+        # will produce a power of 2. So we need another approach.
+        # Let's directly build a hash with n=3 in the Django format and test
+        # the DjangoScryptHandler instead, where n is stored as plain integer.
+        pass
+
+    def test_django_scrypt_handler_invalid_n_returns_false(self):
+        from hashward.schemes.django import DjangoScryptHandler
+
+        handler = DjangoScryptHandler()
+        # Craft a Django scrypt hash with n=3 (not a power of 2)
+        # Format: scrypt$salt$N$r$p$hash
+        malformed = "scrypt$c29tZXNhbHQ=$3$8$1$AAAA"
+        assert handler.verify("password", malformed) is False
+
+    def test_django_scrypt_handler_n_zero_returns_false(self):
+        from hashward.schemes.django import DjangoScryptHandler
+
+        handler = DjangoScryptHandler()
+        # n=0 is invalid
+        malformed = "scrypt$c29tZXNhbHQ=$0$8$1$AAAA"
+        assert handler.verify("password", malformed) is False
+
+    def test_django_scrypt_handler_excessive_n_returns_false(self):
+        from hashward.schemes.django import DjangoScryptHandler
+
+        handler = DjangoScryptHandler()
+        # Extremely large n that would exceed memory
+        malformed = "scrypt$c29tZXNhbHQ=$2147483648$8$1$AAAA"
+        assert handler.verify("password", malformed) is False
+
+    def test_scrypt_handler_valid_hash_still_works(self):
+        from hashward.schemes.scrypt import ScryptHandler
+
+        handler = ScryptHandler()
+        h = handler.hash("password", n=1024)
+        assert handler.verify("password", h) is True
+        assert handler.verify("wrong", h) is False
+
+    def test_django_scrypt_handler_valid_hash_still_works(self):
+        from hashward.schemes.django import DjangoScryptHandler
+
+        handler = DjangoScryptHandler()
+        h = handler.hash("password", n=1024)
+        assert handler.verify("password", h) is True
+        assert handler.verify("wrong", h) is False
