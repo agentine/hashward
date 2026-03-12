@@ -139,7 +139,7 @@ print(ctx.to_string())
 | `sha512_crypt` | Common in `/etc/shadow`. Pure Python, no `crypt` module needed. |
 | `sha256_crypt` | Common in `/etc/shadow`. Pure Python, no `crypt` module needed. |
 | `md5_crypt` | Insecure. Always reports `needs_update`. |
-| `des_crypt` | Insecure. Disabled by default. |
+| `des_crypt` | Insecure. Always reports `needs_update`. |
 
 ### Django compatibility
 
@@ -219,6 +219,8 @@ Create a policy manager for password hashing.
 - `schemes` — list of allowed scheme names
 - `default` — scheme to use for new hashes
 - `deprecated` — list of schemes that trigger `needs_update()`
+- `min_verify_time` — minimum wall-clock seconds for `verify()` (default: `0`, disabled). Useful for preventing timing-based user enumeration.
+- `truncate_error` — if `True`, raise `PasswordValueError` when a bcrypt password exceeds 72 bytes instead of silently truncating (default: `False`)
 - `**settings` — per-scheme settings using `scheme__param=value` syntax
 
 #### `ctx.hash(secret, scheme=None, **settings)`
@@ -239,6 +241,9 @@ Verify and return `(valid, new_hash)`. `new_hash` is `None` if no update is need
 #### `ctx.using(**overrides)`
 Return a new CryptContext with overridden settings.
 
+#### `ctx.copy(**overrides)`
+Alias for `ctx.using()`.
+
 #### `ctx.to_string()` / `CryptContext.from_string(ini_str)`
 Serialize to / deserialize from INI-format configuration strings.
 
@@ -247,7 +252,7 @@ Serialize to / deserialize from INI-format configuration strings.
 - **Default scheme is argon2id** with memory-hard parameters (64 MiB, 2 iterations, 2 threads).
 - **Timing-safe comparisons** via `hmac.compare_digest` for all hash verification.
 - **No `crypt` module dependency.** All legacy schemes (SHA-crypt, MD5-crypt, DES-crypt) use pure Python implementations.
-- **DES-crypt is disabled by default.** It must be explicitly registered to use.
+- **DES-crypt always reports `needs_update`.** Any existing DES-crypt hash will trigger automatic re-hashing on the next `verify_and_update()` call. Do not use it for new hashes.
 - **bcrypt 72-byte limit** is handled: passwords are silently truncated. Use `bcrypt_sha256` or `truncate_error=True` in CryptContext for explicit control.
 
 ## Development
