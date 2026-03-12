@@ -30,6 +30,11 @@ _ALIASES = {
     "sha512_crypt": "sha512_crypt",
     "md5_crypt": "md5_crypt",
     "des_crypt": "des_crypt",
+    "django_pbkdf2_sha256": "django_pbkdf2_sha256",
+    "django_bcrypt": "django_bcrypt",
+    "django_bcrypt_sha256": "django_bcrypt_sha256",
+    "django_argon2": "django_argon2",
+    "django_scrypt": "django_scrypt",
 }
 
 _cache: dict[str, object] = {}
