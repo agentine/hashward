@@ -134,3 +134,43 @@ class TestDjangoArgon2NeedsUpdate:
         h = handler.hash("password", time_cost=1, memory_cost=1024, parallelism=1)
         # Should need update since params are weaker than defaults
         assert handler.needs_update(h) is True
+
+
+class TestDjangoArgon2MalformedHash:
+    """Bug #100: DjangoArgon2Handler.verify() should handle malformed argon2 hashes."""
+
+    def test_verify_malformed_hash_returns_false(self):
+        pytest.importorskip("argon2")
+        from hashward.schemes.django import DjangoArgon2Handler
+
+        handler = DjangoArgon2Handler()
+        # A hash that starts with the Django argon2 prefix but contains
+        # a malformed argon2 hash string, triggering InvalidHashError
+        malformed = "argon2$not-a-valid-argon2-hash"
+        assert handler.verify("password", malformed) is False
+
+    def test_verify_truncated_hash_returns_false(self):
+        pytest.importorskip("argon2")
+        from hashward.schemes.django import DjangoArgon2Handler
+
+        handler = DjangoArgon2Handler()
+        # Truncated argon2 hash
+        malformed = "argon2$$argon2id$v=19$m=102400,t=2,p=8$"
+        assert handler.verify("password", malformed) is False
+
+    def test_verify_empty_argon2_part_returns_false(self):
+        pytest.importorskip("argon2")
+        from hashward.schemes.django import DjangoArgon2Handler
+
+        handler = DjangoArgon2Handler()
+        malformed = "argon2$"
+        assert handler.verify("password", malformed) is False
+
+    def test_verify_correct_hash_still_works(self):
+        pytest.importorskip("argon2")
+        from hashward.schemes.django import DjangoArgon2Handler
+
+        handler = DjangoArgon2Handler()
+        h = handler.hash("password")
+        assert handler.verify("password", h) is True
+        assert handler.verify("wrong", h) is False

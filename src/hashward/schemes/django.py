@@ -205,14 +205,18 @@ class DjangoArgon2Handler(AbstractHandler):
             return False
         self._ensure_backend()
         from argon2 import PasswordHasher
-        from argon2.exceptions import VerifyMismatchError, VerificationError
+        from argon2.exceptions import (
+            InvalidHashError as _ArgonInvalidHash,
+            VerifyMismatchError,
+            VerificationError,
+        )
 
         ph = PasswordHasher()
         argon2_hash = hash[len(self._PREFIX):]
         secret_bytes = to_bytes(secret)
         try:
             return ph.verify(argon2_hash, secret_bytes)
-        except (VerifyMismatchError, VerificationError):
+        except (VerifyMismatchError, VerificationError, _ArgonInvalidHash):
             return False
 
     def identify(self, hash: str) -> bool:
