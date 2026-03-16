@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from hashward.exc import MissingBackendError
 from hashward.schemes._base import AbstractHandler
 
@@ -43,7 +45,7 @@ class Argon2Handler(AbstractHandler):
     _DEFAULT_HASH_LEN = 32
     _DEFAULT_SALT_LEN = 16
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         _ensure_backend()
         # argon2-cffi accepts both str and bytes natively.
         time_cost = settings.get("time_cost", self._DEFAULT_TIME_COST)

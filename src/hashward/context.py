@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import configparser
 import time
+from typing import Any
 
 from hashward.exc import UnknownSchemeError
 from hashward.identify import identify as _identify
@@ -25,7 +26,7 @@ class CryptContext:
         registry: SchemeRegistry | None = None,
         min_verify_time: float = 0,
         truncate_error: bool = False,
-        **settings,
+        **settings: Any,
     ) -> None:
         self._registry = registry or DEFAULT_REGISTRY
         self._schemes = schemes or []
@@ -54,7 +55,7 @@ class CryptContext:
         if self._default not in self._registry:
             raise UnknownSchemeError(f"Unknown default scheme: {self._default!r}")
 
-    def hash(self, secret: str | bytes, scheme: str | None = None, **settings) -> str:
+    def hash(self, secret: str | bytes, scheme: str | None = None, **settings: Any) -> str:
         """Hash a password using the specified or default scheme."""
         scheme = scheme or self._default
         handler = self._registry.get(scheme)
@@ -136,7 +137,7 @@ class CryptContext:
             return True, new_hash
         return True, None
 
-    def using(self, **overrides) -> CryptContext:
+    def using(self, **overrides: Any) -> CryptContext:
         """Return a new CryptContext with overridden settings."""
         kwargs: dict = {
             "schemes": overrides.pop("schemes", self._schemes),
@@ -157,7 +158,7 @@ class CryptContext:
 
         return CryptContext(**kwargs)
 
-    def copy(self, **overrides) -> CryptContext:
+    def copy(self, **overrides: Any) -> CryptContext:
         """Alias for using()."""
         return self.using(**overrides)
 

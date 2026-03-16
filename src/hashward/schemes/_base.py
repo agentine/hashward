@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class AbstractHandler(ABC):
@@ -15,7 +16,7 @@ class AbstractHandler(ABC):
     SCHEME: str = ""
 
     @abstractmethod
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         """Create a new hash from a password."""
 
     def verify(self, secret: str | bytes, hash: str) -> bool:

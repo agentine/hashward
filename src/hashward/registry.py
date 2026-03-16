@@ -59,7 +59,7 @@ class SchemeRegistry:
             import importlib
             module = importlib.import_module(module_path)
             handler_class = getattr(module, class_name)
-            handler = handler_class()
+            handler: Handler = handler_class()
             self._handlers[name] = handler
             return handler
 

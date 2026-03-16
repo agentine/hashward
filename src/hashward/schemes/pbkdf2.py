@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from typing import Any
 
 from hashward._utils import ab64_decode, ab64_encode, consteq, generate_salt, to_bytes
 from hashward.schemes._base import AbstractHandler
@@ -18,7 +19,7 @@ class _Pbkdf2Handler(AbstractHandler):
     _SALT_SIZE = 16
     _DKLEN = 32
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         secret_bytes = to_bytes(secret)
         rounds = settings.get("rounds", self._DEFAULT_ROUNDS)
         salt = generate_salt(self._SALT_SIZE)

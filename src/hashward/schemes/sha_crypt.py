@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+from typing import Any
 
 from hashward._utils import consteq, to_bytes
 from hashward.schemes._base import AbstractHandler
@@ -195,7 +196,7 @@ class _ShaCryptHandler(AbstractHandler):
     _MIN_ROUNDS = 100000
     _RE = re.compile(r"")
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         secret_bytes = to_bytes(secret)
         rounds = settings.get("rounds", self._DEFAULT_ROUNDS)
         rounds = max(_ROUNDS_MIN, min(_ROUNDS_MAX, rounds))

@@ -9,6 +9,7 @@ No stdlib crypt dependency — works on Python 3.13+.
 from __future__ import annotations
 
 import hashlib
+from typing import Any
 
 from hashward._utils import consteq, to_bytes
 from hashward.schemes._base import AbstractHandler
@@ -97,7 +98,7 @@ class Md5CryptHandler(AbstractHandler):
     SCHEME = "md5_crypt"
     _PREFIX = "$1$"
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         secret_bytes = to_bytes(secret)
         salt = settings.get("salt", _generate_salt(8))
         salt = _validate_salt(salt, 8)

@@ -5,6 +5,8 @@ Not registered in DEFAULT_REGISTRY by default.
 
 from __future__ import annotations
 
+from typing import Any
+
 from hashward._utils import consteq
 from hashward.schemes._base import AbstractHandler
 
@@ -17,7 +19,7 @@ class PlaintextHandler(AbstractHandler):
     SCHEME = "plaintext"
     disabled_by_default = True
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         if isinstance(secret, bytes):
             secret = secret.decode("utf-8")
         return f"{_PREFIX}{secret}"

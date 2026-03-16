@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from typing import Any
 
 from hashward._utils import to_bytes
 from hashward.exc import MissingBackendError
@@ -42,7 +43,7 @@ class BcryptHandler(AbstractHandler):
 
     SCHEME = "bcrypt"
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         _ensure_backend()
         secret_bytes = to_bytes(secret)
         # bcrypt has a 72-byte limit on passwords
@@ -83,7 +84,7 @@ class BcryptSha256Handler(AbstractHandler):
 
     _PREFIX = "$bcrypt-sha256$"
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         _ensure_backend()
         secret_bytes = to_bytes(secret)
         # SHA-256 the password first to avoid 72-byte limit

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import re
+from typing import Any
 
 from hashward._utils import consteq, to_bytes
 from hashward.schemes._base import AbstractHandler
@@ -206,7 +207,7 @@ class DesCryptHandler(AbstractHandler):
     SCHEME = "des_crypt"
     disabled_by_default = True
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         secret_bytes = to_bytes(secret)
         salt = settings.get("salt")
         if salt is None:

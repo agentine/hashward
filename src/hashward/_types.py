@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -11,7 +11,7 @@ class Handler(Protocol):
 
     SCHEME: str
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         """Create a new hash from a password."""
         ...
 

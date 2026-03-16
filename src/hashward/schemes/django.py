@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import os
+from typing import Any
 
 from hashward._utils import consteq, to_bytes
 from hashward.schemes._base import AbstractHandler
@@ -24,7 +25,7 @@ class DjangoPbkdf2Sha256Handler(AbstractHandler):
     _DEFAULT_ITERATIONS = 600000
     _DKLEN = 32
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         secret_bytes = to_bytes(secret)
         iterations = settings.get("iterations", self._DEFAULT_ITERATIONS)
         salt = settings.get("salt", base64.b64encode(os.urandom(12)).decode("ascii"))
@@ -84,7 +85,7 @@ class DjangoBcryptHandler(AbstractHandler):
             from hashward.exc import MissingBackendError
             raise MissingBackendError("bcrypt library is required: pip install bcrypt") from None
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         self._ensure_backend()
         import bcrypt
 
@@ -138,7 +139,7 @@ class DjangoBcryptSha256Handler(AbstractHandler):
             from hashward.exc import MissingBackendError
             raise MissingBackendError("bcrypt library is required: pip install bcrypt") from None
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         self._ensure_backend()
         import bcrypt
 
@@ -193,7 +194,7 @@ class DjangoArgon2Handler(AbstractHandler):
                 "argon2-cffi library is required: pip install argon2-cffi",
             ) from None
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         self._ensure_backend()
         from argon2 import PasswordHasher
 
@@ -258,7 +259,7 @@ class DjangoScryptHandler(AbstractHandler):
     _DEFAULT_R = 8
     _DEFAULT_P = 1
 
-    def hash(self, secret: str | bytes, **settings) -> str:
+    def hash(self, secret: str | bytes, **settings: Any) -> str:
         secret_bytes = to_bytes(secret)
         n = settings.get("n", self._DEFAULT_N)
         r = settings.get("r", self._DEFAULT_R)
