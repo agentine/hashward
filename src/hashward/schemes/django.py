@@ -29,7 +29,9 @@ class DjangoPbkdf2Sha256Handler(AbstractHandler):
         iterations = settings.get("iterations", self._DEFAULT_ITERATIONS)
         salt = settings.get("salt", base64.b64encode(os.urandom(12)).decode("ascii"))
 
-        dk = hashlib.pbkdf2_hmac("sha256", secret_bytes, salt.encode("ascii"), iterations, dklen=self._DKLEN)
+        dk = hashlib.pbkdf2_hmac(
+            "sha256", secret_bytes, salt.encode("ascii"), iterations, dklen=self._DKLEN,
+        )
         hash_b64 = base64.b64encode(dk).decode("ascii")
         return f"pbkdf2_sha256${iterations}${salt}${hash_b64}"
 
@@ -47,7 +49,9 @@ class DjangoPbkdf2Sha256Handler(AbstractHandler):
             return False
 
         secret_bytes = to_bytes(secret)
-        dk = hashlib.pbkdf2_hmac("sha256", secret_bytes, salt.encode("ascii"), iterations, dklen=self._DKLEN)
+        dk = hashlib.pbkdf2_hmac(
+            "sha256", secret_bytes, salt.encode("ascii"), iterations, dklen=self._DKLEN,
+        )
         computed = base64.b64encode(dk).decode("ascii")
         return consteq(computed, expected)
 
@@ -78,7 +82,7 @@ class DjangoBcryptHandler(AbstractHandler):
             import bcrypt as _bcrypt  # noqa: F401
         except ImportError:
             from hashward.exc import MissingBackendError
-            raise MissingBackendError("bcrypt library is required: pip install bcrypt")
+            raise MissingBackendError("bcrypt library is required: pip install bcrypt") from None
 
     def hash(self, secret: str | bytes, **settings) -> str:
         self._ensure_backend()
@@ -132,7 +136,7 @@ class DjangoBcryptSha256Handler(AbstractHandler):
             import bcrypt as _bcrypt  # noqa: F401
         except ImportError:
             from hashward.exc import MissingBackendError
-            raise MissingBackendError("bcrypt library is required: pip install bcrypt")
+            raise MissingBackendError("bcrypt library is required: pip install bcrypt") from None
 
     def hash(self, secret: str | bytes, **settings) -> str:
         self._ensure_backend()
@@ -185,7 +189,9 @@ class DjangoArgon2Handler(AbstractHandler):
             import argon2 as _argon2  # noqa: F401
         except ImportError:
             from hashward.exc import MissingBackendError
-            raise MissingBackendError("argon2-cffi library is required: pip install argon2-cffi")
+            raise MissingBackendError(
+                "argon2-cffi library is required: pip install argon2-cffi",
+            ) from None
 
     def hash(self, secret: str | bytes, **settings) -> str:
         self._ensure_backend()
@@ -207,8 +213,10 @@ class DjangoArgon2Handler(AbstractHandler):
         from argon2 import PasswordHasher
         from argon2.exceptions import (
             InvalidHashError as _ArgonInvalidHash,
-            VerifyMismatchError,
+        )
+        from argon2.exceptions import (
             VerificationError,
+            VerifyMismatchError,
         )
 
         ph = PasswordHasher()

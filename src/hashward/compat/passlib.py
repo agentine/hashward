@@ -12,7 +12,7 @@ Usage::
 
 from __future__ import annotations
 
-from hashward.context import CryptContext
 from hashward.compat import passlib_hash as hash  # noqa: A001
+from hashward.context import CryptContext
 
 __all__ = ["CryptContext", "hash"]

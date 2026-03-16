@@ -1,7 +1,7 @@
 # hashward — Modern Password Hashing for Python
 
 **Package Name:** `hashward` (verified available on PyPI)
-**Language:** Python 3.9+
+**Language:** Python 3.10+
 **License:** MIT
 
 ---
@@ -35,7 +35,7 @@
 
 ### Design Principles
 
-1. **Python 3.9+ only** — no Python 2 cruft, full use of modern language features
+1. **Python 3.10+ only** — no Python 2 cruft, full use of modern language features
 2. **Zero required dependencies** — pure Python implementations for all hashlib-based schemes (PBKDF2, SHA-crypt, MD5-crypt). Optional dependencies for bcrypt and argon2.
 3. **Type hints throughout** — full `py.typed` marker, strict mypy compatibility
 4. **passlib-compatible API** — CryptContext and handler interfaces match passlib's API for drop-in migration
@@ -173,7 +173,7 @@ Detect the hashing scheme from a hash string:
 - API documentation
 - Performance benchmarks vs passlib and raw backends
 - Security review checklist
-- GitHub Actions CI (Python 3.9–3.13+)
+- GitHub Actions CI (Python 3.10–3.13+)
 - PyPI publish as `hashward`
 - Announcement and migration guide blog post
 

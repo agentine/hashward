@@ -9,8 +9,9 @@ try:
     import argon2
     from argon2 import PasswordHasher as _PasswordHasher
     from argon2.exceptions import (
-        HashingError,
         InvalidHashError as _ArgonInvalidHash,
+    )
+    from argon2.exceptions import (
         VerificationError,
         VerifyMismatchError,
     )

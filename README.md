@@ -11,7 +11,7 @@
 
 - **passlib is dead.** Last release was October 2020. It crashes on Python 3.13+ due to the removed `crypt` module.
 - **Zero required dependencies.** Pure Python implementations for all hashlib-based schemes. Optional deps for argon2 and bcrypt.
-- **Python 3.9+ only.** No Python 2 baggage. Full type hints with `py.typed` marker.
+- **Python 3.10+ only.** No Python 2 baggage. Full type hints with `py.typed` marker.
 - **passlib-compatible API.** `CryptContext`, hash identification, and `verify_and_update()` all work the same way.
 - **Secure defaults.** Argon2id as the default scheme with safe parameter defaults and timing-safe comparisons.
 

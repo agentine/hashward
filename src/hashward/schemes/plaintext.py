@@ -25,10 +25,7 @@ class PlaintextHandler(AbstractHandler):
     def _verify(self, secret: str | bytes, hash: str) -> bool:
         if isinstance(secret, bytes):
             secret = secret.decode("utf-8")
-        if hash.startswith(_PREFIX):
-            stored = hash[len(_PREFIX):]
-        else:
-            stored = hash
+        stored = hash[len(_PREFIX):] if hash.startswith(_PREFIX) else hash
         return consteq(stored, secret)
 
     def _identify(self, hash: str) -> bool:

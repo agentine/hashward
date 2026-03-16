@@ -46,7 +46,10 @@ def _generate_salt(size: int = 16) -> str:
     return "".join(_SALT_CHARS[b % len(_SALT_CHARS)] for b in raw)
 
 
-def _hash64_encode(data: bytes, order: list[tuple[int, int, int]], final_bytes: tuple[list[int], int] | None = None) -> str:
+def _hash64_encode(
+    data: bytes, order: list[tuple[int, int, int]],
+    final_bytes: tuple[list[int], int] | None = None,
+) -> str:
     """Encode hash bytes to the custom base64 used by sha-crypt/md5-crypt."""
     itoa64 = _SALT_CHARS
     out: list[str] = []
